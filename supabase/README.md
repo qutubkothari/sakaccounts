@@ -1,6 +1,6 @@
 # Supabase setup and fresh start
 
-The dedicated `sakaccounts` schema was inspected before migration. Version-controlled migrations `202610130001` through `202610130019` have been applied in order to the hosted Supabase project. They do not change unrelated schemas. Review each future migration against the live schema before applying it.
+The dedicated `sakaccounts` schema was inspected before migration. Version-controlled migrations `202610130001` through `202610130020` have been applied in order to the hosted Supabase project. They do not change unrelated schemas. Review each future migration against the live schema before applying it.
 
 The owner `sales@saksolution.com` and administrator `qutubk` remain in Supabase Auth and the SakAccounts allowlist. Public signup is disabled. RLS is enabled on financial tables; authenticated, allowlisted users use the reviewed posting functions for journals, accounts, and statement staging. Client code uses only the publishable key. Keep the service key, database password, and financial data out of Git and browser code.
 

@@ -27,10 +27,10 @@ Keep each release directory. To roll back, repoint `/opt/sakaccounts/current` to
 ## Installation state on 13 October 2026
 
 - SakAccounts runs on the existing Hostinger VPS at `200.141.1.206` as the separate `sakaccounts` Linux user and `sakaccounts.service`. It binds to `127.0.0.1:4178`; Nginx serves `https://accounts.saksolution.com/` with HTTPS. Mizantra services and database remain separate.
-- The current release is `/opt/sakaccounts/releases/workflows-20261013c`, selected by `/opt/sakaccounts/current`. The previous release remains available for rollback.
+- The current release is `/opt/sakaccounts/releases/pwa-20261013d`, selected by `/opt/sakaccounts/current`. The previous release remains available for rollback.
 - The owner Auth login `sales@saksolution.com` and `qutubk` administrator login remain. Public signup is disabled.
 - At the owner's direction, all SakAccounts financial records and imported legacy snapshots were cleared. The original external SQLite source files were not changed. Five empty entity configuration rows remain, with no verified opening balances.
-- Migrations through `202610130019_statement_match_integrity.sql` are applied. `tests/accounting.sql` passes inside a rolled-back transaction, including RLS, duplicate staging, card and transfer invariants, adjustments, financing, and split expenses. Build and `npm audit` passed. The public HTTPS route and local health endpoint returned success. A live browser check posted a temporary unpaid INR 10 expense, settled it from a bank account, staged and matched a CSV statement, verified a zero numerical discrepancy, rejected an exact-file retry, and displayed daily, weekly and monthly report totals. All temporary financial rows and the uploaded sample file were then removed; both logins remain.
+- Migrations through `202610130020_mobile_receipt_types.sql` are applied. `tests/accounting.sql` passes inside a rolled-back transaction, including RLS, duplicate staging, card and transfer invariants, adjustments, financing, and split expenses. Build and `npm audit` passed. The public HTTPS route and local health endpoint returned success. A live browser check posted a temporary unpaid INR 10 expense, settled it from a bank account, staged and matched a CSV statement, verified a zero numerical discrepancy, rejected an exact-file retry, and displayed daily, weekly and monthly report totals. All temporary financial rows and the uploaded sample file were then removed; both logins remain.
 
 ## Health checks and rollback
 
@@ -43,3 +43,7 @@ For an application rollback, point `/opt/sakaccounts/current` to the prior relea
 - `qutubk` signs in through the app's username field. Supabase Auth uses the internal identity `qutubk@accounts.saksolution.com`; this is an application login identifier, not a configured mailbox.
 - The identity is allowlisted with `app_role=super_admin`. This role is stored in SakAccounts, without Supabase service-role or PostgreSQL administrator privileges. RLS grants the administrator access to owner records. Posting functions attribute entries to the owner of the selected account and require both sides of a transfer to have the same owner. New accounts created in the current single-owner dashboard are attributed to the existing owner.
 - Rotate the administrator password through Supabase Auth when needed. Do not store it in this repository or the VPS environment file.
+
+## Phone capture release
+
+The 13 October 2026 PWA release adds a quick expense/income form, camera receipt capture, local OCR, SMS extraction, installable manifest and service worker, mobile bottom navigation, and local offline drafts. See [PWA.md](PWA.md) for usage and limits. The live browser check read a sample receipt photo and restored its saved draft after reload; the temporary local draft was discarded. No production financial row was posted in that check.
