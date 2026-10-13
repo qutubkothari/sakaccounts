@@ -42,5 +42,5 @@ Keep each release directory. To roll back, repoint `/opt/sakaccounts/current` to
 ## Application administrator
 
 - `qutubk` signs in through the app's username field. Supabase Auth uses the internal identity `qutubk@accounts.saksolution.com`; this is an application login identifier, not a configured mailbox.
-- The identity is allowlisted with `app_role=super_admin`. This role is stored in SakAccounts, not granted Supabase service-role or PostgreSQL administrator privileges. Existing row ownership rules remain in force, so the administrator has a separate ledger until a reviewed cross-owner workflow is implemented.
+- The identity is allowlisted with `app_role=super_admin`. This role is stored in SakAccounts, without Supabase service-role or PostgreSQL administrator privileges. RLS grants the administrator access to owner records. Posting functions attribute entries to the owner of the selected account and require both sides of a transfer to have the same owner. New accounts created in the current single-owner dashboard are attributed to the existing owner.
 - Rotate the administrator password through Supabase Auth when needed. Do not store it in this repository or the VPS environment file.
