@@ -1,0 +1,21 @@
+[Unit]
+Description=SakAccounts web application
+After=network.target
+
+[Service]
+Type=simple
+User=sakaccounts
+Group=sakaccounts
+WorkingDirectory=/opt/sakaccounts/current
+EnvironmentFile=/etc/sakaccounts/sakaccounts.env
+ExecStart=/usr/bin/node /opt/sakaccounts/current/server.mjs
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/sakaccounts
+
+[Install]
+WantedBy=multi-user.target
