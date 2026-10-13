@@ -76,6 +76,18 @@ select pg_temp.assert_num((select count(*) from sakaccounts.statement_imports wh
 select pg_temp.assert_num(pg_temp.net('expense'),450000,'T6 statement no duplicate expense');
 \echo T6-T7 PASS statement matching and repeated file: no balance change
 
+-- 25: A statement match cannot misstate the journal amount.
+create function pg_temp.assert_bad_match(p_import uuid) returns void language plpgsql as $$ begin
+ begin
+  update sakaccounts.statement_rows set amount_minor=1 where import_id=p_import and row_ref='purchase';
+  raise exception 'T25 invalid amount was accepted';
+ exception when others then
+  if sqlerrm='T25 invalid amount was accepted' then raise; end if;
+ end;
+end $$;
+select pg_temp.assert_bad_match(:'import_id');
+\echo T25 PASS mismatched statement amount rejected
+
 -- 8: Consolidated invoice matches three accruals, no extra expense.
 select sakaccounts.post_entry(gen_random_uuid(),:'owner',:'amazon','expense',current_date,100000,'INR','Advertising',null,'Amazon','Daily ad A',null,0,null,null) as daily_a \gset
 select sakaccounts.post_entry(gen_random_uuid(),:'owner',:'amazon','expense',current_date,100000,'INR','Advertising',null,'Amazon','Daily ad B',null,0,null,null) as daily_b \gset
