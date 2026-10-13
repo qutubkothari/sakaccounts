@@ -62,3 +62,25 @@
 .wf-invoice-row>strong{flex:0 0 auto}
 .wf-compact-upload{position:relative;border:1px solid #b8cdbd;border-radius:7px;padding:10px 14px;color:#21513d;font-weight:700;cursor:pointer;background:#fff}
 .wf-compact-upload input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.wf-pulse-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:26px;background:#e7f2e6;border-radius:16px;margin:8px 0 14px}
+.wf-pulse-hero small{color:#578a63;letter-spacing:1.5px;font-size:10px;font-weight:800}
+.wf-pulse-hero h2{margin:6px 0;font-size:clamp(24px,3vw,34px)}
+.wf-pulse-hero p{margin:0;color:#5f7c68;font-size:13px}
+.wf-pulse-hero .wf-primary{white-space:nowrap;min-height:48px}
+.wf-quick-links{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:17px}
+.wf-quick-links button{border:1px solid #c9dccb;border-radius:9px;background:#fff;color:#21513d;padding:11px 15px;font-size:12px;font-weight:700}
+.wf-quick-links button:hover{background:#edf6eb}
+.wf-insight{width:100%;display:flex;align-items:center;gap:12px;text-align:left;border:0;border-bottom:1px solid #e9eee9;background:#fff;color:#223b30;padding:13px 5px}
+.wf-insight:hover{background:#f5faf4}
+.wf-insight>span:nth-child(2){flex:1;min-width:0}
+.wf-insight b,.wf-change-row b{display:block;font-size:13px}
+.wf-insight small,.wf-change-row small{display:block;font-size:11px;color:#6e8173;margin-top:4px;line-height:1.45}
+.wf-insight-mark{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;font-weight:800;background:#e5f0e6;color:#28653c}
+.wf-insight.urgent .wf-insight-mark{background:#fce7df;color:#a83e28}
+.wf-insight.review .wf-insight-mark{background:#fff2d8;color:#94601c}
+.wf-insight-go{font-size:11px;font-weight:700;color:#386d4b}
+.wf-insight-extra{font-size:12px;color:#6e8173}
+.wf-change-row{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #e9eee9;padding:13px 5px}
+.wf-change-row strong{white-space:nowrap;font-size:13px}
+.wf-risk-text{color:#a83e28!important}
+@media(max-width:640px){.wf-pulse-hero{display:grid}.wf-pulse-hero .wf-primary{width:100%}.wf-quick-links{display:grid;grid-template-columns:repeat(2,1fr)}.wf-quick-links button{padding:11px 8px}.wf-insight-go{display:none}.wf-change-row{align-items:flex-start;flex-direction:column}}
