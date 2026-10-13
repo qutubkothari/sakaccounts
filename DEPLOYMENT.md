@@ -4,7 +4,7 @@
 
 Use its own `/opt/sakaccounts` directory, `sakaccounts` Linux user, `/etc/sakaccounts/sakaccounts.env`, systemd unit, and internal port `4178`. The example service binds the app to loopback. It uses the hosted Supabase project for persistence and Auth; do not copy Mizantra database configuration or secrets.
 
-Create the server environment file with restrictive permissions. Runtime values are `PORT=4178` and `HOST=127.0.0.1`. The `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` values must be available at build time. Store no Supabase service key or database password in Git or frontend assets. Keep any migration-only credentials in an operator shell or secret manager.
+Create the server environment file with restrictive permissions. Runtime values are `PORT=4178`, `HOST=127.0.0.1`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `VAPID_PUBLIC_KEY`, and `VAPID_PRIVATE_KEY`. The `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and public `VITE_VAPID_PUBLIC_KEY` values must be available at build time. Store no Supabase service key, VAPID private key, or database password in Git or frontend assets. Keep migration-only credentials in an operator shell or secret manager. The push worker reads owner-scoped subscriptions and runs every 15 minutes; it sends only a generic alert count and daily reminder.
 
 ## Host installation
 
@@ -27,10 +27,10 @@ Keep each release directory. To roll back, repoint `/opt/sakaccounts/current` to
 ## Installation state on 13 October 2026
 
 - SakAccounts runs on the existing Hostinger VPS at `200.141.1.206` as the separate `sakaccounts` Linux user and `sakaccounts.service`. It binds to `127.0.0.1:4178`; Nginx serves `https://accounts.saksolution.com/` with HTTPS. Mizantra services and database remain separate.
-- The current release is `/opt/sakaccounts/releases/pwa-20261013g`, selected by `/opt/sakaccounts/current`. The previous release remains available for rollback. The dashboard shows daily priorities, cash outlook, possible duplicate expenses, missing documents, overdue bills, budget overruns, and unreconciled statement rows. Reports include month over month category changes. These are deterministic review signals, not proof of cash loss.
+- The current release is `/opt/sakaccounts/releases/pwa-20261013i`, selected by `/opt/sakaccounts/current`. Release `pwa-20261013g` remains the last healthy rollback. The dashboard shows daily priorities and actionable financial review signals. Reports include month over month and budget variance. The PWA reads invoice and expense photos/PDFs on the device and can send owner-enabled background push alerts.
 - The owner Auth login `sales@saksolution.com` and `qutubk` administrator login remain. Public signup is disabled.
 - At the owner's direction, all SakAccounts financial records and imported legacy snapshots were cleared. The original external SQLite source files were not changed. Five empty entity configuration rows remain, with no verified opening balances.
-- Migrations through `202610130021_invoice_document_updates.sql` are applied. `tests/accounting.sql` passed previously inside a rolled-back transaction, including RLS, duplicate staging, card and transfer invariants, adjustments, financing, and split expenses. The production build, public HTTPS route, and local health endpoint succeeded for this release. A live browser check showed invoice photo/PDF controls and the expense photo/PDF control. Earlier temporary financial rows and the uploaded sample file were removed; both logins remain.
+- Migrations through `202610130023_push_worker_grants.sql` are applied. `tests/accounting.sql` passed inside a rolled-back transaction on 13 October 2026, covering RLS, duplicate staging, card and transfer invariants, adjustments, financing, and split expenses. Live PDF invoice reading filled supplier, invoice number and amount from a synthetic file; photo receipt reading filled amount, merchant and category. Neither synthetic document was saved. The push worker starts without database permission errors; real delivery depends on the owner enabling alerts on a device. No test financial rows remain; both logins remain.
 
 ## Health checks and rollback
 

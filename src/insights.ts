@@ -55,6 +55,19 @@ export function buildInsights(input: {
   if (openRows.length) out.push({ id: 'reconcile-open', level: 'review', title: `${openRows.length} bank or card rows need review`, detail: 'Match statement activity to entries or investigate a missing transaction.', destination: 'Reconciliation' })
   else if (!imports.length && entries.length) out.push({ id: 'reconcile-setup', level: 'setup', title: 'Reconcile your first statement', detail: 'Statement matching helps reveal missing or repeated cash movements.', destination: 'Reconciliation' })
 
+  for (const statement of imports) {
+    if (statement.opening_balance_minor == null || statement.closing_balance_minor == null) continue
+    const account = accounts.find(a => a.id === statement.account_id)
+    if (!account) continue
+    const difference = Number(statement.opening_balance_minor) + sum(rows.filter(r => r.import_id === statement.id).map(r => r.amount_minor ?? 0)) - Number(statement.closing_balance_minor)
+    if (difference !== 0) out.push({ id: `statement-gap-${statement.id}`, level: 'urgent', title: `Statement does not balance: ${account.name}`, detail: `${money(difference, account.currency)} difference between the calculated and reported closing balance. Check missing or misread rows.`, destination: 'Reconciliation' })
+  }
+
+  for (const change of monthlyCategoryChanges(expenseSlices, month)) {
+    if (change.previous <= 0 || change.current <= change.previous * 1.5 || change.current - change.previous < (change.currency === 'AED' ? 20000 : 500000)) continue
+    out.push({ id: `spike-${change.currency}-${change.category}`, level: 'review', title: `${change.category} spending rose sharply`, detail: `${money(change.current, change.currency)} this month versus ${money(change.previous, change.currency)} last month. Check whether this is expected.`, destination: 'Budgets' })
+  }
+
   return out.sort((a, b) => ({ urgent: 0, review: 1, setup: 2 })[a.level] - ({ urgent: 0, review: 1, setup: 2 })[b.level])
 }
 

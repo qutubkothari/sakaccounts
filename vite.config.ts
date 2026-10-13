@@ -18,6 +18,7 @@ export default defineConfig({
       share_target: { action: '/?capture=1', method: 'GET', enctype: 'application/x-www-form-urlencoded', params: { title: 'title', text: 'text', url: 'url' } },
     },
     workbox: {
+      importScripts: ['/push-handler.js'],
       globPatterns: ['**/*.{js,css,html,png,svg,wasm,gz,webmanifest}'],
       maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
       navigateFallback: '/index.html',

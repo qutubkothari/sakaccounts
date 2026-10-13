@@ -84,3 +84,6 @@
 .wf-change-row strong{white-space:nowrap;font-size:13px}
 .wf-risk-text{color:#a83e28!important}
 @media(max-width:640px){.wf-pulse-hero{display:grid}.wf-pulse-hero .wf-primary{width:100%}.wf-quick-links{display:grid;grid-template-columns:repeat(2,1fr)}.wf-quick-links button{padding:11px 8px}.wf-insight-go{display:none}.wf-change-row{align-items:flex-start;flex-direction:column}}
+.wf-pulse-actions{display:grid;gap:8px;justify-items:stretch}
+.wf-pulse-actions button{white-space:nowrap}
+@media(max-width:640px){.wf-pulse-actions{width:100%}}
