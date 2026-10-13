@@ -38,3 +38,9 @@ Keep each release directory. To roll back, repoint `/opt/sakaccounts/current` to
 
 - Reconcile the local-only and changed legacy records against the primary VPS snapshot before mapping legacy transactions into the new posting model. Opening balances remain in the owner-only archive and are intentionally not counted as final in the new ledger until reconciliation.
 - The earlier app included vendors, inventory, imports, document capture, business P&L, and other workflows. Those are preserved as raw records but are not yet implemented in the new owner dashboard. See `ACCOUNTING_MIGRATION.md`.
+
+## Application administrator
+
+- `qutubk` signs in through the app's username field. Supabase Auth uses the internal identity `qutubk@accounts.saksolution.com`; this is an application login identifier, not a configured mailbox.
+- The identity is allowlisted with `app_role=super_admin`. This role is stored in SakAccounts, not granted Supabase service-role or PostgreSQL administrator privileges. Existing row ownership rules remain in force, so the administrator has a separate ledger until a reviewed cross-owner workflow is implemented.
+- Rotate the administrator password through Supabase Auth when needed. Do not store it in this repository or the VPS environment file.
