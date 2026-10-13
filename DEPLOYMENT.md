@@ -26,18 +26,17 @@ Keep each release directory. To roll back, repoint `/opt/sakaccounts/current` to
 
 ## Installation state on 13 October 2026
 
-- The Hostinger VPS is `200.141.1.206`. SakAccounts runs as user `sakaccounts`, service `sakaccounts.service`, loopback port `4178`, with releases under `/opt/sakaccounts/releases` and environment file `/etc/sakaccounts/sakaccounts.env`. The service and its local health endpoint are active.
-- Nginx has its own `accounts.saksolution.com.conf` route on port 80. A host-header health check reaches SakAccounts. No prior mapping for this host was found in VPS Nginx configuration.
-- The Supabase schema was inspected before migration: it had no application tables or Auth users. Three version-controlled migrations are applied. The owner Auth account for `sales@saksolution.com` exists and is allowlisted. The installation password was discarded. A recovery link was opened in the user's browser for the owner to set a password.
-- Live RLS checks showed anonymous allowlist access rejected, owner access allowed, non-owner reads empty, and non-owner inserts denied. All four posting operations and duplicate retry behavior were exercised with temporary records, then those records were deleted. The financial tables are empty and one owner is allowlisted.
-- `accounts.saksolution.com` resolves to `200.141.1.206`. Its Nginx route has a Let's Encrypt certificate and redirects HTTP to HTTPS. The public health endpoint and sign-in page load over HTTPS.
-- Public signup is disabled. Supabase Auth Site URL and the sole redirect URL point to `https://accounts.saksolution.com/`.
-- Two earlier SQLite databases were found in the separate local `SAK-Accounts` folder and its former VPS. Both snapshots were imported into `sakaccounts.legacy_snapshot_records` with source labels and checksums. The former VPS snapshot is the selected primary source, available in read-only views. A divergence flag remains open because the local snapshot contains additional and changed records. The temporary transfer files were removed; original source databases remain untouched.
+- SakAccounts runs on the existing Hostinger VPS at `200.141.1.206` as the separate `sakaccounts` Linux user and `sakaccounts.service`. It binds to `127.0.0.1:4178`; Nginx serves `https://accounts.saksolution.com/` with HTTPS. Mizantra services and database remain separate.
+- The current release is `/opt/sakaccounts/releases/workflows-20261013b`, selected by `/opt/sakaccounts/current`. The previous release remains available for rollback.
+- The owner Auth login `sales@saksolution.com` and `qutubk` administrator login remain. Public signup is disabled.
+- At the owner's direction, all SakAccounts financial records and imported legacy snapshots were cleared. The original external SQLite source files were not changed. Five empty entity configuration rows remain, with no verified opening balances.
+- Migrations through `202610130017_split_guards.sql` are applied. `tests/accounting.sql` passes inside a rolled-back transaction, including RLS, duplicate staging, card and transfer invariants, adjustments, financing, and split expenses. Build and `npm audit` passed. The public HTTPS route and local health endpoint returned success.
 
-## Remaining data inputs
+## Health checks and rollback
 
-- Reconcile the local-only and changed legacy records against the primary VPS snapshot before mapping legacy transactions into the new posting model. Opening balances remain in the owner-only archive and are intentionally not counted as final in the new ledger until reconciliation.
-- The earlier app included vendors, inventory, imports, document capture, business P&L, and other workflows. Those are preserved as raw records but are not yet implemented in the new owner dashboard. See `ACCOUNTING_MIGRATION.md`.
+Run `curl -fsS http://127.0.0.1:4178/healthz` on the VPS, open `https://accounts.saksolution.com/`, and check `systemctl status sakaccounts` and `journalctl -u sakaccounts`. Do not include environment values in shared logs.
+
+For an application rollback, point `/opt/sakaccounts/current` to the prior release under `/opt/sakaccounts/releases`, restart `sakaccounts`, and repeat the health checks. SQL migrations are forward-only; database changes need reviewed forward migrations. Financial data must not be dropped as a rollback step.
 
 ## Application administrator
 

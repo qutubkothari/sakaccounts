@@ -18,6 +18,7 @@ end $$;
 select user_id as owner from sakaccounts.owner_allowlist where app_role='owner' limit 1 \gset
 select user_id as admin from sakaccounts.owner_allowlist where app_role='super_admin' limit 1 \gset
 select id as amazon from sakaccounts.entities where owner_id=:'owner' and code='amazon_india' \gset
+select id as fasteners from sakaccounts.entities where owner_id=:'owner' and code='fasteners_india' \gset
 select id as personal from sakaccounts.entities where owner_id=:'owner' and code='personal' \gset
 select id as uae from sakaccounts.entities where owner_id=:'owner' and code='amazon_uae' \gset
 set local role authenticated;
@@ -63,13 +64,14 @@ select pg_temp.assert_num(pg_temp.net('expense'),450000,'T5 no new expense');
 \echo T4-T5 PASS card purchase and repayment: debt 250000, bank -200000, expense 450000
 
 -- 6 and 7: Statement rows match existing purchase and repayment; same file stays one import.
-insert into sakaccounts.statement_imports(owner_id,account_id,file_name,file_sha256)
-values(:'owner',:'card_a','test.csv',repeat('a',64)) returning id as import_id \gset
-insert into sakaccounts.statement_rows(owner_id,import_id,row_ref,posting_date,description,amount_minor,currency,raw,match_status,matched_batch_id)
-values(:'owner',:'import_id','purchase',current_date,'Merchant',-250000,'INR','{}','matched',(select id from sakaccounts.journal_batches where entry_id=:'purchase' and action='post_expense')),
-      (:'owner',:'import_id','repayment',current_date,'Card payment',100000,'INR','{}','matched',:'repay_batch');
-insert into sakaccounts.statement_imports(owner_id,account_id,file_name,file_sha256)
-values(:'owner',:'card_a','test.csv',repeat('a',64)) on conflict(account_id,file_sha256) do nothing;
+select sakaccounts.stage_statement_import(:'owner',:'card_a','test.csv',repeat('a',64),:'owner'||'/test.csv',current_date,current_date,0,0,'raw',
+ jsonb_build_array(
+  jsonb_build_object('row_ref','purchase','posting_date',current_date::text,'description','Merchant','amount_minor',-250000,'raw','{}'::jsonb),
+  jsonb_build_object('row_ref','repayment','posting_date',current_date::text,'description','Card payment','amount_minor',100000,'raw','{}'::jsonb)
+ )) as import_id \gset
+update sakaccounts.statement_rows set match_status='matched',matched_batch_id=(select id from sakaccounts.journal_batches where entry_id=:'purchase' and action='post_expense') where import_id=:'import_id' and row_ref='purchase';
+update sakaccounts.statement_rows set match_status='matched',matched_batch_id=:'repay_batch' where import_id=:'import_id' and row_ref='repayment';
+select sakaccounts.stage_statement_import(:'owner',:'card_a','test.csv',repeat('a',64),:'owner'||'/test.csv',current_date,current_date,0,0,'raw','[]'::jsonb);
 select pg_temp.assert_num((select count(*) from sakaccounts.statement_imports where account_id=:'card_a'),1,'T7 duplicate file');
 select pg_temp.assert_num(pg_temp.net('expense'),450000,'T6 statement no duplicate expense');
 \echo T6-T7 PASS statement matching and repeated file: no balance change
@@ -135,6 +137,55 @@ select pg_temp.assert_num(pg_temp.net('bank',:'aed_bank'),12345,'T14 AED opening
 -- 15: Fresh start contains no imported legacy financial rows.
 select pg_temp.assert_num((select count(*) from sakaccounts.legacy_snapshot_records),0,'T15 legacy removed');
 \echo T15 PASS legacy records do not affect fresh balances
+
+-- Additional financing and asset classification checks.
+select sakaccounts.post_financing(gen_random_uuid(),:'owner',:'amazon','loan_received',current_date,1000000,'INR',:'business_bank','Loan principal');
+select sakaccounts.post_financing(gen_random_uuid(),:'owner',:'amazon','loan_repayment',current_date,400000,'INR',:'business_bank','Principal paid');
+select pg_temp.assert_num(-pg_temp.net('loan_payable'),600000,'T17 remaining loan principal');
+select pg_temp.assert_num(-pg_temp.net('revenue'),1500000,'T17 no loan revenue');
+\echo T17 PASS loan principal 600000, no revenue or expense from financing
+select pg_temp.net('expense') as expense_before_asset \gset
+select sakaccounts.post_entry(gen_random_uuid(),:'owner',:'amazon','prepaid',current_date,100000,'INR','Licence',null,'Provider','Prepaid licence',null,100000,current_date,:'business_bank') as prepaid_entry \gset
+select sakaccounts.post_entry(gen_random_uuid(),:'owner',:'amazon','fixed_asset',current_date,200000,'INR','Equipment',null,'Provider','Fixed asset',null,0,null,null);
+select pg_temp.assert_num(pg_temp.net('prepaid'),100000,'T18 prepaid asset');
+select pg_temp.assert_num(pg_temp.net('fixed_asset'),200000,'T18 fixed asset');
+select pg_temp.assert_num(pg_temp.net('expense'),:'expense_before_asset','T18 no immediate expense');
+\echo T18 PASS prepaid and fixed assets classified as assets, not immediate expense
+select sakaccounts.post_entry(gen_random_uuid(),:'owner',:'amazon','interest',current_date,5000,'INR','Card interest',null,'Issuer','Interest charge',null,5000,current_date,:'card_a');
+select pg_temp.assert_num(pg_temp.net('expense'),:'expense_before_asset'::bigint+5000,'T19 interest expense');
+\echo T19 PASS interest charge is an expense and increases card debt
+select sakaccounts.post_adjustment(gen_random_uuid(),:'prepaid_entry','prepaid_release',40000,current_date,null);
+select pg_temp.assert_num(pg_temp.net('prepaid'),60000,'T20 prepaid remaining');
+select sakaccounts.post_adjustment(gen_random_uuid(),:'ad1','expense_refund',10000,current_date,:'business_bank');
+select pg_temp.assert_num(pg_temp.net('expense'),:'expense_before_asset'::bigint+35000,'T20 net expense after release/refund');
+\echo T20 PASS prepaid release 40000 and linked refund 10000 adjust expense once
+select sakaccounts.stage_statement_import(:'owner',:'business_bank','test-staged.csv',repeat('b',64),:'owner'||'/test-staged.csv',current_date,current_date,0,10000,'raw statement',jsonb_build_array(jsonb_build_object('row_ref','2','posting_date',current_date::text,'description','Test row','amount_minor',10000,'raw',jsonb_build_object('source','2')))) as staged_id \gset
+select sakaccounts.stage_statement_import(:'owner',:'business_bank','test-staged.csv',repeat('b',64),:'owner'||'/test-staged.csv',current_date,current_date,0,10000,'raw statement','[]'::jsonb) as staged_retry \gset
+select pg_temp.assert_num((select count(*) from sakaccounts.statement_rows where import_id=:'staged_id'),1,'T21 atomic row staging');
+select pg_temp.assert_num((:'staged_id'::uuid=:'staged_retry'::uuid)::int,1,'T21 duplicate import returns same batch');
+\echo T21 PASS atomic statement staging and exact-file retry
+select sakaccounts.post_entry_with_due(gen_random_uuid(),:'owner',:'amazon','expense',current_date,10000,'INR','Utilities',null,'Supplier','Dated bill',null,0,null,null,current_date+7) as dated_bill \gset
+select pg_temp.assert_num((select (due_date=current_date+7)::int from sakaccounts.ledger_entries where id=:'dated_bill'),1,'T22 due date');
+insert into sakaccounts.cash_plan_settings(owner_id,currency,reserve_minor,essential_costs_30d_minor,confirmed_collections_30d_minor)
+values(:'owner','INR',100000,200000,0);
+select pg_temp.assert_num((select reserve_minor from sakaccounts.cash_plan_settings where owner_id=:'owner' and currency='INR'),100000,'T22 reserve');
+\echo T22 PASS due date and explicit cash-plan assumptions
+select pg_temp.assert_num(has_table_privilege('authenticated','sakaccounts.finance_accounts','INSERT')::int,0,'T23 direct account insert denied');
+select pg_temp.assert_num(has_table_privilege('authenticated','sakaccounts.statement_rows','INSERT')::int,0,'T23 raw statement insert denied');
+select pg_temp.assert_num(has_table_privilege('authenticated','sakaccounts.journal_lines','INSERT')::int,0,'T23 direct journal insert denied');
+\echo T23 PASS direct account, raw statement and journal inserts denied
+
+-- 24: One split bill recognises each entity/category once, then pays allocations.
+select sakaccounts.post_split_expense(gen_random_uuid(),:'owner',current_date,'INR','Shared supplier','Shared bill','SPLIT-1',current_date+10,jsonb_build_array(jsonb_build_object('entity_id',:'amazon','category','Advertising','amount_minor',70000),jsonb_build_object('entity_id',:'fasteners','category','Office','amount_minor',30000))) as split_bill \gset
+select pg_temp.assert_num((select count(*) from sakaccounts.entry_allocations where entry_id=:'split_bill'),2,'T24 allocation count');
+select pg_temp.assert_num((select amount_minor from sakaccounts.ledger_entries where id=:'split_bill'),100000,'T24 one expense total');
+select pg_temp.assert_num((select sum(amount_minor)::bigint from sakaccounts.entry_allocations where entry_id=:'split_bill'),100000,'T24 allocation total');
+select id as split_a from sakaccounts.entry_allocations where entry_id=:'split_bill' and category='Advertising' \gset
+select id as split_b from sakaccounts.entry_allocations where entry_id=:'split_bill' and category='Office' \gset
+select sakaccounts.settle_split_expense(gen_random_uuid(),:'split_bill',current_date,:'business_bank',jsonb_build_array(jsonb_build_object('allocation_id',:'split_a','amount_minor',40000),jsonb_build_object('allocation_id',:'split_b','amount_minor',30000)));
+select pg_temp.assert_num((select sum(amount_minor)::bigint from sakaccounts.settlement_allocations where allocation_id in (:'split_a',:'split_b')),70000,'T24 allocated payments');
+select pg_temp.assert_num((select sum(amount_minor)::bigint from sakaccounts.settlements where entry_id=:'split_bill'),70000,'T24 payment total');
+\echo T24 PASS split expense and partial multi-entity payment
 
 -- 16: Unauthorised authenticated subject sees no owner/entity rows.
 select set_config('request.jwt.claim.sub',gen_random_uuid()::text,true);
