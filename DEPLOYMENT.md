@@ -40,6 +40,8 @@ For an application rollback, point `/opt/sakaccounts/current` to the prior relea
 
 ## Application administrator
 
+The current statement import fix is `/opt/sakaccounts/releases/statement-fix-20261013-real`. It accepts CSV and XLSX source uploads and parses card `(Dr)` and `(Cr)` amounts. The previous healthy rollback is `/opt/sakaccounts/releases/pwa-20261013g`. The `pwa-20261013i` directory was touched during publication and must not be selected for rollback.
+
 - `qutubk` signs in through the app's username field. Supabase Auth uses the internal identity `qutubk@accounts.saksolution.com`; this is an application login identifier, not a configured mailbox.
 - The identity is allowlisted with `app_role=super_admin`. This role is stored in SakAccounts, without Supabase service-role or PostgreSQL administrator privileges. RLS grants the administrator access to owner records. Posting functions attribute entries to the owner of the selected account and require both sides of a transfer to have the same owner. New accounts created in the current single-owner dashboard are attributed to the existing owner.
 - Rotate the administrator password through Supabase Auth when needed. Do not store it in this repository or the VPS environment file.
