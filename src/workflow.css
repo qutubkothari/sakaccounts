@@ -52,3 +52,13 @@
 .wf-shell.is-collapsed .wf-signout-icon{display:inline}
 .wf-shell.is-collapsed .wf-account button{width:100%;font-size:20px;line-height:1}
 @media(max-width:900px){.wf-shell.is-collapsed{grid-template-columns:1fr}}
+.wf-invoice-document{grid-column:1/-1;display:grid;gap:8px;color:#3f5749;font-weight:700;font-size:12px}
+.wf-invoice-document .wf-capture-actions{max-width:560px;margin:0}
+.wf-invoice-document small{font-weight:500;color:#306a45}
+.wf-document-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wf-document-actions .wf-capture-btn{min-width:180px;min-height:42px;padding:8px 14px}
+.wf-invoice-row{flex-wrap:wrap}
+.wf-invoice-row>span{flex:1 1 210px}
+.wf-invoice-row>strong{flex:0 0 auto}
+.wf-compact-upload{position:relative;border:1px solid #b8cdbd;border-radius:7px;padding:10px 14px;color:#21513d;font-weight:700;cursor:pointer;background:#fff}
+.wf-compact-upload input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
