@@ -30,7 +30,7 @@ Keep each release directory. To roll back, repoint `/opt/sakaccounts/current` to
 - The current release is `/opt/sakaccounts/releases/workflows-20261013b`, selected by `/opt/sakaccounts/current`. The previous release remains available for rollback.
 - The owner Auth login `sales@saksolution.com` and `qutubk` administrator login remain. Public signup is disabled.
 - At the owner's direction, all SakAccounts financial records and imported legacy snapshots were cleared. The original external SQLite source files were not changed. Five empty entity configuration rows remain, with no verified opening balances.
-- Migrations through `202610130017_split_guards.sql` are applied. `tests/accounting.sql` passes inside a rolled-back transaction, including RLS, duplicate staging, card and transfer invariants, adjustments, financing, and split expenses. Build and `npm audit` passed. The public HTTPS route and local health endpoint returned success.
+- Migrations through `202610130018_split_settlement_guard.sql` are applied. `tests/accounting.sql` passes inside a rolled-back transaction, including RLS, duplicate staging, card and transfer invariants, adjustments, financing, and split expenses. Build and `npm audit` passed. The public HTTPS route and local health endpoint returned success.
 
 ## Health checks and rollback
 
@@ -43,3 +43,4 @@ For an application rollback, point `/opt/sakaccounts/current` to the prior relea
 - `qutubk` signs in through the app's username field. Supabase Auth uses the internal identity `qutubk@accounts.saksolution.com`; this is an application login identifier, not a configured mailbox.
 - The identity is allowlisted with `app_role=super_admin`. This role is stored in SakAccounts, without Supabase service-role or PostgreSQL administrator privileges. RLS grants the administrator access to owner records. Posting functions attribute entries to the owner of the selected account and require both sides of a transfer to have the same owner. New accounts created in the current single-owner dashboard are attributed to the existing owner.
 - Rotate the administrator password through Supabase Auth when needed. Do not store it in this repository or the VPS environment file.
+
