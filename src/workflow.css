@@ -17,6 +17,7 @@
 .wf-quick-form{display:grid;gap:18px}
 .wf-quick-form .wf-field input,.wf-quick-form .wf-field select{min-height:48px}
 .wf-quick-form .wf-field .wf-amount{height:70px;font-size:32px;font-weight:800;letter-spacing:-1px;border-color:#9abb9e}
+.wf-review-count{font-weight:700;color:#31574a;margin:14px 0}.wf-decision{border:1px solid #dce9df;border-radius:12px;padding:16px;margin:12px 0;background:#fbfdfa}.wf-decision-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.wf-decision-head b{display:block}.wf-decision-head small{display:block;color:#718477;margin-top:5px}.wf-decision-head span{font-size:12px;color:#8a6734}.wf-decision-fields{margin:14px 0}.wf-decision-match,.wf-decision-actions{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin-top:12px}.wf-decision-match .wf-field{min-width:min(320px,100%)}.wf-decision-actions label{margin-right:auto;font-size:13px}.wf-decision-actions input{margin-right:7px}@media(max-width:640px){.wf-decision-actions button{flex:1}.wf-decision-head{display:block}}
 .wf-kind-switch,.wf-payment-choices>div{display:flex;gap:8px;flex-wrap:wrap}
 .wf-kind-switch button,.wf-payment-choices button{border:1px solid #cadbcd;background:#f7faf6;border-radius:9px;color:#315643;min-height:44px;padding:8px 17px;font-weight:700;font-size:13px}
 .wf-kind-switch button.selected,.wf-payment-choices button.selected{background:#1b4a38;color:#fff;border-color:#1b4a38}
