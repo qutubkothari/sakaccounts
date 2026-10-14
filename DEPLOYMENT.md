@@ -40,6 +40,8 @@ For an application rollback, point `/opt/sakaccounts/current` to the prior relea
 
 ## Application administrator
 
+On 14 October 2026, migration `202610140001_foreign_card_origin.sql` added expense location and original merchant currency/amount to ledger entries. The live release is `/opt/sakaccounts/releases/foreign-card-20261014`; rollback is `/opt/sakaccounts/releases/statement-fix-20261013-real`. The card amount remains in the card's currency for matching. Original merchant amounts are reference data; the app does not infer an FX rate or post a second AED expense from an INR card charge.
+
 The current statement import fix is `/opt/sakaccounts/releases/statement-fix-20261013-real`. It accepts CSV and XLSX source uploads and parses card `(Dr)` and `(Cr)` amounts. The previous healthy rollback is `/opt/sakaccounts/releases/pwa-20261013g`. The `pwa-20261013i` directory was touched during publication and must not be selected for rollback.
 
 - `qutubk` signs in through the app's username field. Supabase Auth uses the internal identity `qutubk@accounts.saksolution.com`; this is an application login identifier, not a configured mailbox.

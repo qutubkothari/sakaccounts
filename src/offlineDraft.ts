@@ -3,6 +3,9 @@ import { del, get, set } from 'idb-keyval'
 export type EntryDraft = {
   kind: 'expense' | 'income'
   amount: string
+  expenseCountry?: 'IN' | 'AE'
+  merchantCurrency?: 'INR' | 'AED'
+  merchantAmount?: string
   entity: string
   date: string
   category: string
