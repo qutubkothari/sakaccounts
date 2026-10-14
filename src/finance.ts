@@ -14,7 +14,7 @@ export type Reimbursement = { id: string; expense_id: string; amount_minor: numb
 export type StatementAllocation = { id: string; statement_id: string; repayment_batch_id: string; amount_minor: number }
 export type Adjustment = { id: string; source_entry_id: string; batch_id: string; kind: 'expense_refund' | 'prepaid_release' | 'fixed_asset_depreciation' | 'deposit_return'; amount_minor: number; effective_date: string; account_id: string | null }
 export type CashPlan = { owner_id: string; currency: 'INR' | 'AED'; reserve_minor: number; essential_costs_30d_minor: number; confirmed_collections_30d_minor: number; assumptions: string | null }
-export type OwnerPreference = { owner_id: string; reporting_timezone: string }
+export type OwnerPreference = { owner_id: string; reporting_timezone: string; expense_categories?: string[] }
 export type EntryAllocation = { id: string; entry_id: string; entity_id: string; category: string; amount_minor: number }
 export type SettlementAllocation = { settlement_id: string; allocation_id: string; amount_minor: number }
 
